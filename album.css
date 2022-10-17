@@ -8,43 +8,45 @@ body {
     justify-content: center;
     align-items: center;
     width: 100%;
-    min-height: 100vh;
+
 }
+/* 
+.display{
+    display: flex;
+    flex-direction: column;
+} */
 
 .container {
-    width: 2000px;
-    max-width: 100%;
-    margin: 0 auto;
+
 
 }
 
 /* Float four columns side by side */
 .row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+    display: grid;
+    padding: 10px;
+    grid-template-columns: auto auto auto auto auto;
     
-
-
 }
 
 
 
 /* Style the counter cards */
 .card {
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  
+    box-shadow:rgba(0, 0, 0, 0.2);
     /* this adds the "card" effect */
     display: flex;
-    flex-direction: column;
-    background: white;
-    grid-template-columns: auto auto auto auto auto;
+    margin-right: 2px;
+    margin-bottom:2px;
+    flex-direction: row;
+    background: yellow;
     
-    flex: 1 1 21em;
-    margin: 10px 20px;
-    padding:10px 20px;
+
+
+  
     align-self: normal;
-    width:20%; /*new added*/
+ 
 }
 
 .card h3 {
@@ -54,20 +56,14 @@ body {
     font-size: 1.3rem;
 }
 
-.caard p {
-    text-align: justify;
-    line-height: 130%;
-    margin-bottom: 20px;
-}
 
 .button{
     margin-top: auto;
 }
 
 /* The Modal (background) */
-.modal {
+.modalclass {
     display: none; /* Hidden by default */
-    display: flex;
     position: fixed; /* Stay in place */
     z-index: 1; /* Sit on top */
     padding-top: 100px; /* Location of the box */
@@ -82,11 +78,19 @@ body {
   
   /* Modal Content */
   .modal-content {
+   
     background-color: #fefefe;
     margin: auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
+  }
+
+  .modalcont{
+    display: grid;
+    padding: 10px;
+    grid-template-columns: auto auto auto auto auto;
+
   }
   
   /* The Close Button */

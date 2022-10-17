@@ -1,21 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="album.js"></script>
-    <link href = "album.css" rel="stylesheet">
+    <link href="album.css" rel="stylesheet">
 </head>
-<body >
-    <div class = "container" id ="container">
-        <div class = "row" id="row">
-        </div>
-        <div class = "modalclass" id ="modal">
 
+<body>
+
+
+    <div class="display">
+        <div class="search">
+            <input id="searchInput" type="text" name="searchInput" placeholder="search.." oninput="process()" /><br>
+        </div>
+        <div class="container" id="container">
+
+            <div class="row" id="row">
+            </div>
+            <div class="modalclass" id="modal">
+                <div class="modalcontent">
+                    <div class="span">
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modalcont">
+
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
-    
+
 </body>
+
 </html>

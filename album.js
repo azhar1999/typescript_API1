@@ -124,7 +124,7 @@ async function callAlbums() {
 
     request.onupgradeneeded = function () {
         const db = request.result;
-        console.log(x);
+
 
         const store = db.createObjectStore("albums", { keyPath: "id" })
         store.createIndex("title", ["title"]);
@@ -157,20 +157,20 @@ function wait() {
     return new Promise((res) => {
         setTimeout(() => {
             res();
-        }, 3000);
+        }, 500);
     });
 
 
 }
 
 
-async function albumDisplay() {
-    getAlbum();
-    await wait();
-    var f = document.querySelector('.row');
+async function albumDisplay(albumArray1) {
 
-    for (var i = 0; i < albumArray.length; i++) {
-        p = albumArray[i]
+    var f = document.querySelector('.row');
+    f.innerHTML=""
+
+    for (var i = 0; i < albumArray1.length; i++) {
+        p = albumArray1[i]
         f.innerHTML += `<div class ="card">
                                 <h3>${p.title}</h3>
                                 <p>${p.id}</p>
@@ -179,22 +179,26 @@ async function albumDisplay() {
 
     }
 
+    console.log(f);
+   
+
 
     var classArray = document.getElementsByClassName('card');
+  
     for (var i = 0; i < classArray.length; i++) {
         p = classArray[i];
-        var cardid = "cardid" + albumArray[i].id
+        var cardid = "cardid" + albumArray1[i].id
 
         p.setAttribute("id", cardid)
     }
     var buttonArray = document.getElementsByClassName('button');
     for (var i = 0; i < classArray.length; i++) {
         p = buttonArray[i];
-        var buttonid = albumArray[i].id
+        var buttonid = albumArray1[i].id
         p.setAttribute("id", buttonid)
     }
 
-    console.log(f);
+  
 
     let btns = document.querySelectorAll('button');
 
@@ -213,31 +217,36 @@ async function photoDisplay(albumID) {
 
 
     await wait();
-    console.log(photoArray);
-    var g = document.getElementById("modal")
-    g.innerHTML = "";
+
+    
+    
 
     var s="";
-    s+= `<div class ="modal" id="mymodal">
-    <div class="modal-content">
-        <span class ="close">&times;</span>`
+
     
     for (var i = 0; i < photoArray.length; i++) {
         if (photoArray[i].albumId == albumID) {
-            console.log("hii");
 
-            s += `<div class ="card">
-                                <img width=100% height=100% src= ${photoArray[i].thumbnailUrl}>
+
+            s += `<div class ="photocard">
+                                <img src= ${photoArray[i].thumbnailUrl}>
                                 </div>`
                             
         }
     }
-    s+=`</div></div>`
+
+    // f+= `<div class ="modal" id="mymodal">
+    // <div class="modal-content">
+    //     <span class ="close">&times;</span>`+s+`</div></div>`
+    var g = document.querySelector(".modalcont")
+    g.innerHTML = "";
     g.innerHTML=s;
-    var modal = document.getElementById("mymodal");
-    var span = document.getElementsByClassName("close")[0];
     console.log(g);
+    var modal = document.getElementById("modal");
+    var span = document.getElementsByClassName("close")[0];
+
     modal.style.display = "block";
+    console.log(modal);
     span.onclick = function () {
         modal.style.display = "none";
     }
@@ -247,20 +256,59 @@ async function photoDisplay(albumID) {
             modal.style.display = "none";
         }
     }
+}
+
+async function search()
+{  
+    var searchname=document.getElementById("searchInput").value;
+    
+    searchBy(searchname,albumArray);
+    
+}
+
+function searchBy(searchname, albumArray){
+    var searching = new RegExp(`${searchname}`,"gi")
+   
+
+    var resultalbumname = albumArray.filter(function(el){
+        return searching.test(el.title);
+
+    });
 
 
+    albumDisplay(resultalbumname);
 
 
+ }
 
+
+async function runDisplay(){
+    getAlbum();
+    await wait();
+    albumDisplay(albumArray);
 
 }
 
 
+
+function debounce(func,timeout){
+    let timer;
+    return (...args)=>{
+        clearTimeout(timer);
+        timer = setTimeout(() =>{
+            func.apply(this,args);},500);
+        };
+    }
+
+const process = debounce (() => search())
+
+
+
 //photoDisplay();
-albumDisplay();
+
 //callPhotos();
 //callAlbums()
-
+runDisplay();
 // document.getElementById('row').addEventListener("click",function(e)){
 //     if (e.target && e.target.matches(""))
 // }

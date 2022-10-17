@@ -7,6 +7,8 @@ var albumArray = [];
 
 var photoArray = [];
 
+var btns;
+
 let getPhotos = new Promise(resolve => {
     fetch('https://jsonplaceholder.typicode.com/photos')
         .then(function (response1) { return response1.json(); })
@@ -37,7 +39,7 @@ async function callPhotos() {
     };
     request.onupgradeneeded = function () {
         const db = request.result;
-        console.log(x);
+
 
         const store = db.createObjectStore("photos", { keyPath: "id" })
         store.createIndex("title", ["title"]);
@@ -125,6 +127,7 @@ async function callAlbums() {
         console.log(x);
 
         const store = db.createObjectStore("albums", { keyPath: "id" })
+        store.createIndex("title", ["title"]);
     };
 
     request.onsuccess = function () {
@@ -145,51 +148,119 @@ async function callAlbums() {
     }
 }
 
-//callPhotos()
-// callAlbums()
 
 
 // getAlbum();
 // getPhoto();
 
-function wait(){
-    return new Promise((res)=>{
-        setTimeout(()=>{
-            res();},3000);});
-  
-  
+function wait() {
+    return new Promise((res) => {
+        setTimeout(() => {
+            res();
+        }, 3000);
+    });
+
+
 }
 
 
-async function albumDisplay(){
+async function albumDisplay() {
     getAlbum();
     await wait();
     var f = document.querySelector('.row');
-    
-   
-  
-    for (var i =0 ; i< albumArray.length;i++){
-        p=albumArray[i]
+
+    for (var i = 0; i < albumArray.length; i++) {
+        p = albumArray[i]
         f.innerHTML += `<div class ="card">
                                 <h3>${p.title}</h3>
                                 <p>${p.id}</p>
                                 <button type ="button" class ="button">click here</button>
                         </div>`
+
     }
+
+
+    var classArray = document.getElementsByClassName('card');
+    for (var i = 0; i < classArray.length; i++) {
+        p = classArray[i];
+        var cardid = "cardid" + albumArray[i].id
+
+        p.setAttribute("id", cardid)
+    }
+    var buttonArray = document.getElementsByClassName('button');
+    for (var i = 0; i < classArray.length; i++) {
+        p = buttonArray[i];
+        var buttonid = albumArray[i].id
+        p.setAttribute("id", buttonid)
+    }
+
     console.log(f);
 
+    let btns = document.querySelectorAll('button');
+
+    btns.forEach(function (i) {
+        i.addEventListener('click', function () {
+
+            photoDisplay(i.id);
+        });
+    });
 }
 
 
-async function photoDisplay(){
+async function photoDisplay(albumID) {
+    photoArray = []
     getPhoto();
-    await wait();
-    var f = document.getElementById("photos")
-    for (var i =0 ;i <50;i++){
 
-        f.innerHTML+= `<div><img src= ${photoArray[i].thumbnailUrl}></div>`
+
+    await wait();
+    console.log(photoArray);
+    var g = document.getElementById("modal")
+    g.innerHTML = "";
+
+    var s="";
+    s+= `<div class ="modal" id="mymodal">
+    <div class="modal-content">
+        <span class ="close">&times;</span>`
+    
+    for (var i = 0; i < photoArray.length; i++) {
+        if (photoArray[i].albumId == albumID) {
+            console.log("hii");
+
+            s += `<div class ="card">
+                                <img width=100% height=100% src= ${photoArray[i].thumbnailUrl}>
+                                </div>`
+                            
+        }
     }
+    s+=`</div></div>`
+    g.innerHTML=s;
+    var modal = document.getElementById("mymodal");
+    var span = document.getElementsByClassName("close")[0];
+    console.log(g);
+    modal.style.display = "block";
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+
+
+
+
+
 }
+
 
 //photoDisplay();
 albumDisplay();
+//callPhotos();
+//callAlbums()
+
+// document.getElementById('row').addEventListener("click",function(e)){
+//     if (e.target && e.target.matches(""))
+// }

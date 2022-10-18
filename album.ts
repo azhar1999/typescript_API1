@@ -342,6 +342,12 @@ function debounce(func: Function, timeout = 500) {
     };
 }
 
+function deleteDatabase(){
+    var r1 = indexedDB.deleteDatabase("photoDatabase")
+    var r2 = indexedDB.deleteDatabase("albumDatabase")
+}
+
+
 const process = debounce(() => search())
 
 

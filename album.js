@@ -325,6 +325,10 @@ function debounce(func, timeout) {
         }, timeout);
     };
 }
+function deleteDatabase() {
+    var r1 = indexedDB.deleteDatabase("photoDatabase");
+    var r2 = indexedDB.deleteDatabase("albumDatabase");
+}
 var process = debounce(function () { return search(); });
 var processPhotos = debounce(function () { return searchPhotos(); });
 //photoDisplay();

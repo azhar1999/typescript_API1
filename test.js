@@ -1,25 +1,13 @@
 
+const indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+let x;
+let y;
 
-let x: any;
-let y: any;
-let p: any;
-let f: any;
-let g: any;
+var albumArray = [];
 
-let albID: any;
+var photoArray = [];
 
-
-
-var albumArray: any = [];
-
-var photoArray: any = [];
-
-
-var photoArrayused:any=[];
-
-var btns: any;
-
-
+var btns;
 
 let getPhotos = new Promise(resolve => {
     fetch('https://jsonplaceholder.typicode.com/photos')
@@ -33,6 +21,10 @@ let getAlbums = new Promise(resolve => {
         .then(function (json) { resolve(json) });
 })
 
+
+if (!indexedDB) {
+    console.log("IndexedDB could not be found in this browser.");
+}
 
 
 
@@ -75,7 +67,7 @@ async function getPhoto() {
 
         const transaction = db.transaction(["photos"], "readwrite");
         const store = transaction.objectStore("photos");
-        store.openCursor().onsuccess = (event: any) => {
+        store.openCursor().onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
                 photoArray.push(cursor.value);
@@ -100,7 +92,7 @@ async function getAlbum() {
 
         const transaction = db.transaction(["albums"], "readwrite");
         const store = transaction.objectStore("albums");
-        store.openCursor().onsuccess = (event: any) => {
+        store.openCursor().onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
                 albumArray.push(cursor.value);
@@ -162,7 +154,7 @@ async function callAlbums() {
 // getPhoto();
 
 function wait() {
-    return new Promise((res: any) => {
+    return new Promise((res) => {
         setTimeout(() => {
             res();
         }, 500);
@@ -172,32 +164,27 @@ function wait() {
 }
 
 
-async function albumDisplay(albumArray1: any) {
+async function albumDisplay(albumArray1) {
 
-
-
-    f = document.querySelector('.row');
-    f.innerHTML = ""
+    var f = document.querySelector('.row');
+    f.innerHTML=""
 
     for (var i = 0; i < albumArray1.length; i++) {
         p = albumArray1[i]
         f.innerHTML += `<div class ="card">
-                                <div class="cardcontents">
-                                <div class="cardtitle">
                                 <h3>${p.title}</h3>
-                                </div>
-                                <div class="cardid">
                                 <p>${p.id}</p>
-                                </div>
-                                <div class="cardbutton">
                                 <button type ="button" class ="button">click here</button>
-                                </div>
-                                </div>
                         </div>`
 
     }
-    var classArray = document.getElementsByClassName('card');
 
+    console.log(f);
+   
+
+
+    var classArray = document.getElementsByClassName('card');
+  
     for (var i = 0; i < classArray.length; i++) {
         p = classArray[i];
         var cardid = "cardid" + albumArray1[i].id
@@ -211,118 +198,85 @@ async function albumDisplay(albumArray1: any) {
         p.setAttribute("id", buttonid)
     }
 
-
+  
 
     let btns = document.querySelectorAll('button');
-    photoArray = []
-    getPhoto();
-    await wait();
+
     btns.forEach(function (i) {
         i.addEventListener('click', function () {
-            albID = i.id
-            photoArrayused=[]
-            
-            for (var j=0;j<photoArray.length;j++){
-                if (photoArray[j].albumId==albID){
-                    photoArrayused.push(photoArray[j])
-                }
-            }
 
-            photoDisplay(albID, photoArrayused);
+            photoDisplay(i.id);
         });
     });
 }
 
 
-async function photoDisplay(albumID: any, photoArray1: any) {
-    var s = "";
+async function photoDisplay(albumID) {
+    photoArray = []
+    getPhoto();
+    await wait();
+    var s="";
 
-    for (var i = 0; i < photoArray1.length; i++) {
-        if (photoArray1[i].albumId == albumID) {
+    
+    for (var i = 0; i < photoArray.length; i++) {
+        if (photoArray[i].albumId == albumID) {
+
 
             s += `<div class ="photocard">
-
-                                <div class="phototitle">
-                                <h3>${photoArray1[i].title}</h3>
-                                </div>
-                                <div class="photourl">
-                                <img src= ${photoArray1[i].thumbnailUrl}>
-                                </div>
+                                <img src= ${photoArray[i].thumbnailUrl}>
                                 </div>`
+                            
         }
     }
-
 
     // f+= `<div class ="modal" id="mymodal">
     // <div class="modal-content">
     //     <span class ="close">&times;</span>`+s+`</div></div>`
-    g = document.querySelector(".modalcont")
+    var g = document.querySelector(".modalcont")
     g.innerHTML = "";
-    g.innerHTML = s;
-    
+    g.innerHTML=s;
+    console.log(g);
+    var modal = document.getElementById("modal");
+    var span = document.getElementsByClassName("close")[0];
 
-    var modalElement = <HTMLInputElement>document.getElementById("modal")
-    var modal = modalElement.value
-    var span = <HTMLElement>document.getElementsByClassName("close")[0];
-
-    modalElement.style.display = "block";
-
+    modal.style.display = "block";
+    console.log(modal);
     span.onclick = function () {
-        modalElement.style.display = "none";
+        modal.style.display = "none";
     }
 
-    window.onclick = function (event: any) {
+    window.onclick = function (event) {
         if (event.target == modal) {
-            modalElement.style.display = "none";
+            modal.style.display = "none";
         }
     }
 }
 
-async function search() {
-    var searchname1 = <HTMLInputElement>document.getElementById("searchInput");
-    var searchname = searchname1.value
-
-    searchBy(searchname, albumArray);
-
-}
-
-async function searchPhotos() {
-    var searchname1 = <HTMLInputElement>document.getElementById("searchPhotoInput");
-    var searchname = searchname1.value
-
-    if (searchname===""||searchname==null){
-        photoDisplay(albID,photoArrayused)
-    }else{
-
-    searchByPhotos(searchname, photoArrayused);
-    }
-
-}
-
-function searchBy(searchname: any, albumArray: any) {
-    var searching = new RegExp(`${searchname}`, "gi")
-
-    var resultalbumname = albumArray.filter(function (el: any) {
-        return searching.test(el.title);
-
-    });
-    albumDisplay(resultalbumname);
-}
-
-function searchByPhotos(searchname: any, photoArraydup1: any) {
-    var searching = new RegExp(`${searchname}`, "gi")
-
-    var resultphotoname = photoArraydup1.filter(function (el: any) {
-        return searching.test(el.title);
-
-    });
-
+async function search()
+{  
+    var searchname=document.getElementById("searchInput").value;
     
-    photoDisplay(albID, resultphotoname);
+    searchBy(searchname,albumArray);
+    
 }
 
+function searchBy(searchname, albumArray){
+    var searching = new RegExp(`${searchname}`,"gi")
+   
 
-async function runDisplay() {
+    var resultalbumname = albumArray.filter(function(el){
+        return searching.test(el.title);
+
+    });
+
+
+    albumDisplay(resultalbumname);
+
+
+ }
+
+
+async function runDisplay(){
     getAlbum();
     await wait();
     albumDisplay(albumArray);
@@ -331,21 +285,19 @@ async function runDisplay() {
 
 
 
-function debounce(func: Function, timeout = 500) {
-    let timer: number;
-    return function (this: any, ...args: any[]) {
+
+function debounce(func,timeout){
+    let timer;
+    return (...args)=>{
         clearTimeout(timer);
-        timer = setTimeout(() => {
-            func.apply(this, args);
-        }, timeout);
+        timer = setTimeout(() =>{
+            func.apply(this,args);},500);
+        };
+    }
 
-    };
-}
-
-const process = debounce(() => search())
+const process = debounce (() => search())
 
 
-const processPhotos = debounce(() => searchPhotos())
 
 //photoDisplay();
 

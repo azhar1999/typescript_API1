@@ -1,3 +1,4 @@
+//interface of album
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,285 +35,302 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var x;
-var y;
-var p;
-var f;
-var g;
-var albID;
-var albumArray = [];
-var photoArray = [];
-var photoArrayused = [];
-var btns;
-var getPhotos = new Promise(function (resolve) {
-    fetch('https://jsonplaceholder.typicode.com/photos')
-        .then(function (response1) { return response1.json(); })
-        .then(function (json) { resolve(json); });
-});
-var getAlbums = new Promise(function (resolve) {
-    fetch('https://jsonplaceholder.typicode.com/albums')
-        .then(function (response1) { return response1.json(); })
-        .then(function (json) { resolve(json); });
-});
-function callPhotos() {
-    return __awaiter(this, void 0, void 0, function () {
-        var request;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, getPhotos];
-                case 1:
-                    x = _a.sent();
-                    request = indexedDB.open("photoDatabase", 5);
-                    request.onerror = function (event) {
-                        console.error("An error occurred with IndexedDB");
-                        console.error(event);
-                    };
-                    request.onupgradeneeded = function () {
-                        var db = request.result;
-                        var store = db.createObjectStore("photos", { keyPath: "id" });
-                        store.createIndex("title", ["title"]);
-                    };
-                    request.onsuccess = function () {
-                        var db = request.result;
-                        var transaction = db.transaction(["photos"], "readwrite");
-                        var store = transaction.objectStore("photos");
-                        for (var i = 0; i < x.length; i++) {
-                            var p = x[i];
-                            store.put(p);
-                        }
-                    };
-                    return [2 /*return*/];
-            }
+var _this = this;
+var albumArray;
+var photoArray;
+var searchElement = document.getElementById('searchInput');
+var searchPhotoElement = document.getElementById('searchPhotoInput');
+// to create databse and objectstore
+var request = window.indexedDB.open("albumDB");
+request.onupgradeneeded = function (e) {
+    var db = request.result;
+    var albumstore = db.createObjectStore("albumobjectstore", { keyPath: 'id' });
+    var photostore = db.createObjectStore("photoobjectstore", { keyPath: 'id' });
+    photostore.createIndex('albumId', 'albumId');
+};
+//class to fetch api album
+var AlbumApiFetcher = /** @class */ (function () {
+    function AlbumApiFetcher(url) {
+        this.array = new Array();
+        this.url = url;
+    }
+    AlbumApiFetcher.prototype.fetcher = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fetch(this.url)
+                            .then(function (response) { return response.json(); })
+                            .then(function (json) {
+                            _this.array = json;
+                        })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
         });
-    });
-}
-function getPhoto() {
-    return __awaiter(this, void 0, void 0, function () {
-        var request;
-        return __generator(this, function (_a) {
-            request = indexedDB.open("photoDatabase", 5);
-            request.onsuccess = function () {
-                var db = request.result;
-                var transaction = db.transaction(["photos"], "readwrite");
-                var store = transaction.objectStore("photos");
-                store.openCursor().onsuccess = function (event) {
-                    var cursor = event.target.result;
-                    if (cursor) {
-                        photoArray.push(cursor.value);
-                        cursor["continue"]();
-                    }
-                    else {
-                        return photoArray;
-                    }
-                };
-            };
-            return [2 /*return*/];
+    };
+    return AlbumApiFetcher;
+}());
+// class to fetch api photos
+var PhotosApiFetcher = /** @class */ (function () {
+    function PhotosApiFetcher(url) {
+        this.array = new Array();
+        this.url = url;
+    }
+    PhotosApiFetcher.prototype.fetcher = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fetch(this.url)
+                            .then(function (response) { return response.json(); })
+                            .then(function (json) {
+                            _this.array = json;
+                        })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
         });
-    });
-}
-function getAlbum() {
-    return __awaiter(this, void 0, void 0, function () {
-        var request;
-        return __generator(this, function (_a) {
-            request = indexedDB.open("albumDatabase", 5);
-            request.onsuccess = function () {
-                var db = request.result;
-                var transaction = db.transaction(["albums"], "readwrite");
-                var store = transaction.objectStore("albums");
-                store.openCursor().onsuccess = function (event) {
-                    var cursor = event.target.result;
-                    if (cursor) {
-                        albumArray.push(cursor.value);
-                        cursor["continue"]();
-                    }
-                    else {
-                        return albumArray;
-                    }
-                };
-            };
-            return [2 /*return*/];
+    };
+    return PhotosApiFetcher;
+}());
+//class to inputalbumdatas into indexedDB
+var InputalbumDatas = /** @class */ (function () {
+    function InputalbumDatas(phArray) {
+        this.inputArray = new Array;
+        this.inputArray = phArray;
+    }
+    InputalbumDatas.prototype.insertdatas = function (objectstorename) {
+        return __awaiter(this, void 0, void 0, function () {
+            var db;
+            return __generator(this, function (_a) {
+                db = request.result;
+                this.inputArray.forEach(function (item) {
+                    var transaction = db.transaction(objectstorename, "readwrite");
+                    var objectStore = transaction.objectStore(objectstorename);
+                    var addRequest = objectStore.add(item);
+                });
+                return [2 /*return*/];
+            });
         });
-    });
-}
-function callAlbums() {
-    return __awaiter(this, void 0, void 0, function () {
-        var request;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, getAlbums];
-                case 1:
-                    x = _a.sent();
-                    request = indexedDB.open("albumDatabase", 5);
-                    request.onerror = function (event) {
-                        console.error("An error occurred with IndexedDB");
-                        console.error(event);
-                    };
-                    request.onupgradeneeded = function () {
-                        var db = request.result;
-                        var store = db.createObjectStore("albums", { keyPath: "id" });
-                        store.createIndex("title", ["title"]);
-                    };
-                    request.onsuccess = function () {
-                        var db = request.result;
-                        var transaction = db.transaction(["albums"], "readwrite");
-                        var store = transaction.objectStore("albums");
-                        for (var i = 0; i < x.length; i++) {
-                            var p = x[i];
-                            store.put(p);
-                        }
-                    };
-                    return [2 /*return*/];
-            }
+    };
+    return InputalbumDatas;
+}());
+//class to inputphotodatas into indexedDB
+var InputphotoDatas = /** @class */ (function () {
+    function InputphotoDatas(phArray) {
+        this.inputArray = new Array;
+        this.inputArray = phArray;
+    }
+    InputphotoDatas.prototype.insertdatas = function (objectstorename) {
+        return __awaiter(this, void 0, void 0, function () {
+            var db;
+            return __generator(this, function (_a) {
+                db = request.result;
+                this.inputArray.forEach(function (item) {
+                    var transaction = db.transaction(objectstorename, "readwrite");
+                    var objectStore = transaction.objectStore(objectstorename);
+                    var addRequest = objectStore.add(item);
+                });
+                return [2 /*return*/];
+            });
         });
-    });
-}
-// getAlbum();
-// getPhoto();
-function wait() {
-    return new Promise(function (res) {
-        setTimeout(function () {
-            res();
-        }, 500);
-    });
-}
-function albumDisplay(albumArray1) {
-    return __awaiter(this, void 0, void 0, function () {
-        var i, classArray, i, cardid, buttonArray, i, buttonid, btns;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    f = document.querySelector('.row');
-                    f.innerHTML = "";
-                    for (i = 0; i < albumArray1.length; i++) {
-                        p = albumArray1[i];
-                        f.innerHTML += "<div class =\"card\">\n                                <div class=\"cardcontents\">\n                                <div class=\"cardtitle\">\n                                <h3>".concat(p.title, "</h3>\n                                </div>\n                                <div class=\"cardid\">\n                                <p>").concat(p.id, "</p>\n                                </div>\n                                <div class=\"cardbutton\">\n                                <button type =\"button\" class =\"button\">click here</button>\n                                </div>\n                                </div>\n                        </div>");
-                    }
-                    classArray = document.getElementsByClassName('card');
-                    for (i = 0; i < classArray.length; i++) {
-                        p = classArray[i];
-                        cardid = "cardid" + albumArray1[i].id;
-                        p.setAttribute("id", cardid);
-                    }
-                    buttonArray = document.getElementsByClassName('button');
-                    for (i = 0; i < classArray.length; i++) {
-                        p = buttonArray[i];
-                        buttonid = albumArray1[i].id;
-                        p.setAttribute("id", buttonid);
-                    }
-                    btns = document.querySelectorAll('button');
-                    photoArray = [];
-                    getPhoto();
-                    return [4 /*yield*/, wait()];
-                case 1:
-                    _a.sent();
-                    btns.forEach(function (i) {
-                        i.addEventListener('click', function () {
-                            albID = i.id;
-                            photoArrayused = [];
-                            for (var j = 0; j < photoArray.length; j++) {
-                                if (photoArray[j].albumId == albID) {
-                                    photoArrayused.push(photoArray[j]);
-                                }
+    };
+    return InputphotoDatas;
+}());
+//class to get albumdatas from indexedDB
+var GetalbumDatas = /** @class */ (function () {
+    function GetalbumDatas(object) {
+        this.objectstorename = object;
+    }
+    GetalbumDatas.prototype.getdatas = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var promise;
+            var _this = this;
+            return __generator(this, function (_a) {
+                promise = new Promise(function (resolve) {
+                    var db = request.result;
+                    var transaction = db.transaction(_this.objectstorename, "readwrite");
+                    var objectStore = transaction.objectStore(_this.objectstorename);
+                    var getRequest = objectStore.getAll();
+                    getRequest.onsuccess = function () {
+                        var array = getRequest.result;
+                        resolve(array);
+                    };
+                });
+                return [2 /*return*/, promise];
+            });
+        });
+    };
+    return GetalbumDatas;
+}());
+//class to get photodatas from indexedDB
+var GetphotoDatas = /** @class */ (function () {
+    function GetphotoDatas(object, albumidvalue) {
+        this.objectstorename = object;
+        this.albumidvalue = albumidvalue;
+    }
+    GetphotoDatas.prototype.getdatas = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var promise;
+            var _this = this;
+            return __generator(this, function (_a) {
+                promise = new Promise(function (resolve) {
+                    var db = request.result;
+                    var transaction = db.transaction(_this.objectstorename, "readwrite");
+                    var objectStore = transaction.objectStore(_this.objectstorename);
+                    var opencursor = objectStore.openCursor();
+                    var arr = new Array();
+                    opencursor.onsuccess = function () {
+                        var cursor = opencursor.result;
+                        if (cursor) {
+                            if (cursor.value.albumId == _this.albumidvalue) {
+                                arr.push(cursor.value);
                             }
-                            photoDisplay(albID, photoArrayused);
+                            cursor["continue"]();
+                        }
+                        else {
+                            resolve(arr);
+                            console.log("succesful");
+                        }
+                    };
+                });
+                return [2 /*return*/, promise];
+            });
+        });
+    };
+    return GetphotoDatas;
+}());
+//class to search inside album indexedDB
+var AlbumSearch = /** @class */ (function () {
+    function AlbumSearch(key, searchArray) {
+        this.searchArray = new Array;
+        this.key = key;
+        this.searchArray = searchArray;
+    }
+    AlbumSearch.prototype.searchmethod = function () {
+        var searching = new RegExp("".concat(this.key), "gi");
+        var resultalbumname = this.searchArray.filter(function (e) {
+            return searching.test(e.title);
+        });
+        var albumObject = new DisplayAlbums(resultalbumname);
+        albumObject.displaydatas();
+    };
+    return AlbumSearch;
+}());
+//class to search inside photo of current albumID indexedDB
+var PhotoSearch = /** @class */ (function () {
+    function PhotoSearch(key, searchArray) {
+        this.searchArray = new Array;
+        this.key = key;
+        this.searchArray = searchArray;
+    }
+    PhotoSearch.prototype.searchmethod = function () {
+        var searching = new RegExp("".concat(this.key), "gi");
+        var resultphotoname = this.searchArray.filter(function (e) {
+            return searching.test(e.title);
+        });
+        var photoObject = new DisplayPhotos(resultphotoname);
+        photoObject.displaydatas();
+    };
+    return PhotoSearch;
+}());
+//class to display Photos 
+var DisplayPhotos = /** @class */ (function () {
+    function DisplayPhotos(phArray) {
+        this.inputArray = new Array;
+        this.inputArray = phArray;
+    }
+    DisplayPhotos.prototype.displaydatas = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var s, i, displayqueryphotos, modalElement, modal, span;
+            return __generator(this, function (_a) {
+                s = "";
+                for (i = 0; i < this.inputArray.length; i++) {
+                    s += "<div class =\"photocard\">\n        \n                                        <div class=\"photocontent\" id=\"phototitle\">\n                                        ".concat(this.inputArray[i].title, "\n                                        </div>\n                                        <div class=\"photocontent\" id =\"photoclick\">Hover to show color</div>\n                                        <div class=\"photocontent\" id=\"photourl\">\n                                        <img src= ").concat(this.inputArray[i].thumbnailUrl, ">\n                                        </div>\n                                        </div>");
+                }
+                displayqueryphotos = document.querySelector(".modalcont");
+                displayqueryphotos.innerHTML = "";
+                displayqueryphotos.innerHTML = s;
+                modalElement = document.getElementById("modal");
+                modal = modalElement.value;
+                span = document.getElementsByClassName("close")[0];
+                modalElement.style.display = "block";
+                span.onclick = function () {
+                    modalElement.style.display = "none";
+                };
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        modalElement.style.display = "none";
+                    }
+                };
+                return [2 /*return*/];
+            });
+        });
+    };
+    return DisplayPhotos;
+}());
+//class to display Photos 
+var DisplayAlbums = /** @class */ (function () {
+    function DisplayAlbums(phArray) {
+        this.inputArray = new Array;
+        this.inputArray = phArray;
+    }
+    DisplayAlbums.prototype.displaydatas = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var displayquery, i, classArray, i, cardid, buttonArray, i, buttonid, btns;
+            return __generator(this, function (_a) {
+                displayquery = document.querySelector('.row');
+                displayquery.innerHTML = "";
+                for (i = 0; i < this.inputArray.length; i++) {
+                    displayquery.innerHTML += "<div class =\"card\">\n                                \n                                <div class=\"cardcontent\" id =\"cardtitle\">\n                                ".concat(this.inputArray[i].title, "\n                                </div>\n                                <div class=\"cardcontent\" id =\"cardid\">\n                                <p>").concat(this.inputArray[i].id, "</p>\n                                </div>\n                                <div class=\"cardcontent\" id =\"cardbutton\">\n                                <button type =\"button\" class =\"button\">click here</button>\n                                </div>\n                        </div>");
+                }
+                classArray = document.getElementsByClassName('card');
+                for (i = 0; i < classArray.length; i++) {
+                    cardid = "cardid" + classArray[i].id;
+                    classArray[i].setAttribute("id", cardid);
+                }
+                buttonArray = document.getElementsByClassName('button');
+                for (i = 0; i < classArray.length; i++) {
+                    buttonid = this.inputArray[i].id;
+                    buttonArray[i].setAttribute("id", buttonid);
+                }
+                photoArray = [];
+                btns = document.querySelectorAll('.button');
+                btns.forEach(function (i) {
+                    i.addEventListener('click', function () {
+                        return __awaiter(this, void 0, void 0, function () {
+                            var buttonid, getphoto, dispphoto;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        buttonid = +i.id;
+                                        getphoto = new GetphotoDatas("photoobjectstore", buttonid);
+                                        return [4 /*yield*/, getphoto.getdatas()];
+                                    case 1:
+                                        photoArray = _a.sent();
+                                        dispphoto = new DisplayPhotos(photoArray);
+                                        dispphoto.displaydatas();
+                                        return [2 /*return*/];
+                                }
+                            });
                         });
                     });
-                    return [2 /*return*/];
-            }
+                });
+                return [2 /*return*/];
+            });
         });
-    });
-}
-function photoDisplay(albumID, photoArray1) {
-    return __awaiter(this, void 0, void 0, function () {
-        var s, i, modalElement, modal, span;
-        return __generator(this, function (_a) {
-            s = "";
-            for (i = 0; i < photoArray1.length; i++) {
-                if (photoArray1[i].albumId == albumID) {
-                    s += "<div class =\"photocard\">\n\n                                <div class=\"phototitle\">\n                                <h3>".concat(photoArray1[i].title, "</h3>\n                                </div>\n                                <div class=\"photourl\">\n                                <img src= ").concat(photoArray1[i].thumbnailUrl, ">\n                                </div>\n                                </div>");
-                }
-            }
-            // f+= `<div class ="modal" id="mymodal">
-            // <div class="modal-content">
-            //     <span class ="close">&times;</span>`+s+`</div></div>`
-            g = document.querySelector(".modalcont");
-            g.innerHTML = "";
-            g.innerHTML = s;
-            modalElement = document.getElementById("modal");
-            modal = modalElement.value;
-            span = document.getElementsByClassName("close")[0];
-            modalElement.style.display = "block";
-            span.onclick = function () {
-                modalElement.style.display = "none";
-            };
-            window.onclick = function (event) {
-                if (event.target == modal) {
-                    modalElement.style.display = "none";
-                }
-            };
-            return [2 /*return*/];
-        });
-    });
-}
-function search() {
-    return __awaiter(this, void 0, void 0, function () {
-        var searchname1, searchname;
-        return __generator(this, function (_a) {
-            searchname1 = document.getElementById("searchInput");
-            searchname = searchname1.value;
-            searchBy(searchname, albumArray);
-            return [2 /*return*/];
-        });
-    });
-}
-function searchPhotos() {
-    return __awaiter(this, void 0, void 0, function () {
-        var searchname1, searchname;
-        return __generator(this, function (_a) {
-            searchname1 = document.getElementById("searchPhotoInput");
-            searchname = searchname1.value;
-            if (searchname === "" || searchname == null) {
-                photoDisplay(albID, photoArrayused);
-            }
-            else {
-                searchByPhotos(searchname, photoArrayused);
-            }
-            return [2 /*return*/];
-        });
-    });
-}
-function searchBy(searchname, albumArray) {
-    var searching = new RegExp("".concat(searchname), "gi");
-    var resultalbumname = albumArray.filter(function (el) {
-        return searching.test(el.title);
-    });
-    albumDisplay(resultalbumname);
-}
-function searchByPhotos(searchname, photoArraydup1) {
-    var searching = new RegExp("".concat(searchname), "gi");
-    var resultphotoname = photoArraydup1.filter(function (el) {
-        return searching.test(el.title);
-    });
-    photoDisplay(albID, resultphotoname);
-}
-function runDisplay() {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    getAlbum();
-                    return [4 /*yield*/, wait()];
-                case 1:
-                    _a.sent();
-                    albumDisplay(albumArray);
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
+    };
+    return DisplayAlbums;
+}());
 function debounce(func, timeout) {
     if (timeout === void 0) { timeout = 500; }
     var timer;
+    console.log();
     return function () {
         var _this = this;
         var args = [];
@@ -325,16 +343,48 @@ function debounce(func, timeout) {
         }, timeout);
     };
 }
-function deleteDatabase() {
-    var r1 = indexedDB.deleteDatabase("photoDatabase");
-    var r2 = indexedDB.deleteDatabase("albumDatabase");
-}
-var process = debounce(function () { return search(); });
-var processPhotos = debounce(function () { return searchPhotos(); });
-//photoDisplay();
-//callPhotos();
-//callAlbums()
-runDisplay();
-// document.getElementById('row').addEventListener("click",function(e)){
-//     if (e.target && e.target.matches(""))
-// }
+//search albums
+searchElement === null || searchElement === void 0 ? void 0 : searchElement.addEventListener('input', function (event) {
+    var searchname = document.getElementById("searchInput");
+    var searchalbumObject = new AlbumSearch(searchname.value, albumArray);
+    searchalbumObject.searchmethod();
+});
+//search photos
+searchPhotoElement === null || searchPhotoElement === void 0 ? void 0 : searchPhotoElement.addEventListener('input', function (event) {
+    var searchname = document.getElementById("searchPhotoInput");
+    var searchphotoObject = new PhotoSearch(searchname.value, photoArray);
+    searchphotoObject.searchmethod();
+});
+var run = function () { return __awaiter(_this, void 0, void 0, function () {
+    var apialbum, apiphoto, insertalbum, insertphoto, getalbum, dispdata;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                apialbum = new AlbumApiFetcher('https://jsonplaceholder.typicode.com/albums');
+                return [4 /*yield*/, apialbum.fetcher()];
+            case 1:
+                _a.sent();
+                apiphoto = new PhotosApiFetcher('https://jsonplaceholder.typicode.com/photos');
+                return [4 /*yield*/, apiphoto.fetcher()];
+            case 2:
+                _a.sent();
+                insertalbum = new InputalbumDatas(apialbum.array);
+                return [4 /*yield*/, insertalbum.insertdatas("albumobjectstore")];
+            case 3:
+                _a.sent();
+                insertphoto = new InputphotoDatas(apiphoto.array);
+                return [4 /*yield*/, insertphoto.insertdatas("photoobjectstore")];
+            case 4:
+                _a.sent();
+                getalbum = new GetalbumDatas("albumobjectstore");
+                return [4 /*yield*/, getalbum.getdatas()];
+            case 5:
+                albumArray = _a.sent();
+                dispdata = new DisplayAlbums(albumArray);
+                dispdata.displaydatas();
+                return [2 /*return*/];
+        }
+    });
+}); };
+//run the program
+run();

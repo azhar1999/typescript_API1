@@ -6,16 +6,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <script src="album.js"></script>
+    <script src="album.js" defer></script>
     <link href="album.css" rel="stylesheet">
+
+
+
 </head>
 
-<body onbeforeunload="deleteDB()">
+<body onbeforeunload="deleteDatabase()">
 
 
     <div class="display">
         <div class="search">
-            <input id="searchInput" type="text" name="searchInput" placeholder="search.." oninput="process()" /><br>
+            <input id="searchInput" type="text" name="searchInput" placeholder="search.."  /><br>
         </div>
         <div class="container" id="container">
 
@@ -23,12 +26,13 @@
             </div>
             <div class="modalclass" id="modal">
                 <div class="modalcontent">
-                    <div class="searchPhotos">
-                        <input id="searchPhotoInput" type="text" name="searchPhotoInput" placeholder="search.." oninput="processPhotos()" /><br>
-                    </div>
                     <div class="span">
                         <span class="close">&times;</span>
                     </div>
+                    <div class="searchPhotos">
+                        <input id="searchPhotoInput" type="text" name="searchPhotoInput" placeholder="search.." /><br>
+                    </div>
+                    
                     <div class="modalcont">
 
                     </div>

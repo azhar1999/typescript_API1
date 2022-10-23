@@ -1,339 +1,475 @@
+//interface of album
+
+interface IAlbums{
+
+    userId:string
+    id:string
+    title:string
+
+}
+
+//interface of photos
+
+interface IPhotos{
+
+    albumId:string
+    id:string
+    title:string
+    url:string
+    thumbnailUrl:string
+
+}
+
+//interface to photo and album fetch api
+
+interface IApiFetcher{  
+
+    url:string;
+    array:Array<IAlbums|IPhotos>;
+    fetcher();
+
+}
 
 
-let x: any;
-let y: any;
-let p: any;
-let f: any;
-let g: any;
+//interface to inputalbumdatas  and inputphotodatas into indexedDB
 
-let albID: any;
+interface IinputDatas{
 
+    inputArray:Array<IAlbums|IPhotos>;
+    insertdatas(objectstorename:string);
 
-
-var albumArray: any = [];
-
-var photoArray: any = [];
+}
 
 
-var photoArrayused:any=[];
-
-var btns: any;
+//interface to get albumdatas and photodatas from indexedDB
 
 
 
-let getPhotos = new Promise(resolve => {
-    fetch('https://jsonplaceholder.typicode.com/photos')
-        .then(function (response1) { return response1.json(); })
-        .then(function (json) { resolve(json) });
-})
+interface IgetDatas{
 
-let getAlbums = new Promise(resolve => {
-    fetch('https://jsonplaceholder.typicode.com/albums')
-        .then(function (response1) { return response1.json(); })
-        .then(function (json) { resolve(json) });
-})
+    objectstorename:String
+    getdatas();
+
+}
+
+//class to search inside album and photo indexedDB
 
 
+interface ISearch{
+
+    key:string;
+    searchArray:Array<IAlbums|IPhotos>;
+    searchmethod();
+
+}
+
+//interace to displayphotos and displayalbums
+interface IDisplaydatas{
+
+    inputArray:Array<IPhotos|IAlbums>;
+    displaydatas();
+
+}
+
+let albumArray:Array<IAlbums>;
+let photoArray:Array<IPhotos>;
+
+
+const searchElement = document.getElementById('searchInput')
+const searchPhotoElement = document.getElementById('searchPhotoInput')
 
 
 
+// to create databse and objectstore
 
-async function callPhotos() {
-    x = await getPhotos;
-    const request = indexedDB.open("photoDatabase", 5);
-    request.onerror = function (event) {
-        console.error("An error occurred with IndexedDB");
-        console.error(event);
-    };
-    request.onupgradeneeded = function () {
-        const db = request.result;
+let request = window.indexedDB.open("albumDB")
+
+request.onupgradeneeded=(e)=>{
+
+    let db = request.result
+    let albumstore = db.createObjectStore("albumobjectstore",{keyPath:'id'})
+    let photostore = db.createObjectStore("photoobjectstore",{keyPath:'id'})
+    photostore.createIndex('albumId','albumId')
+    
+};
 
 
-        const store = db.createObjectStore("photos", { keyPath: "id" })
-        store.createIndex("title", ["title"]);
-    };
 
-    request.onsuccess = function () {
-        const db = request.result;
-        const transaction = db.transaction(["photos"], "readwrite");
-        const store = transaction.objectStore("photos");
+//class to fetch api album
 
-        for (var i = 0; i < x.length; i++) {
-            var p = x[i];
-            store.put(p);
+class AlbumApiFetcher implements IApiFetcher{
+
+    url:string;
+    array= new Array<IAlbums>();
+
+    constructor(url:string){
+
+        this.url = url
+    }
+
+    public async fetcher(){
+
+        await fetch(this.url)
+            .then(response=>response.json())
+                .then(json=>{
+                    this.array=json;
+                            })
+    }
+
+}
+
+
+// class to fetch api photos
+
+class PhotosApiFetcher implements IApiFetcher{
+
+    url:string;
+    array= new Array<IPhotos>();
+
+    constructor(url:string){
+
+        this.url = url
+    }
+
+    public async fetcher(){
+
+        await fetch(this.url)
+            .then(response=>response.json())
+                .then(json=>{
+                    this.array=json;
+                            })
+    }
+
+}
+
+
+//class to inputalbumdatas into indexedDB
+
+class InputalbumDatas implements IinputDatas {
+
+    inputArray = new Array<IAlbums>;
+    constructor(phArray:Array<IAlbums>){
+
+        this.inputArray=phArray
+    }
+
+    async insertdatas(objectstorename:string){
+
+         let db = request.result
+        this.inputArray.forEach((item:Object) => {
+
+            let transaction = db.transaction(objectstorename, "readwrite"); 
+            let objectStore = transaction.objectStore(objectstorename);
+            let addRequest = objectStore.add(item)
         }
+        )
     }
 
 }
 
-async function getPhoto() {
-    const request = indexedDB.open("photoDatabase", 5);
-    request.onsuccess = function () {
-        const db = request.result;
+//class to inputphotodatas into indexedDB
 
 
+class InputphotoDatas implements IinputDatas {
 
-        const transaction = db.transaction(["photos"], "readwrite");
-        const store = transaction.objectStore("photos");
-        store.openCursor().onsuccess = (event: any) => {
-            const cursor = event.target.result;
-            if (cursor) {
-                photoArray.push(cursor.value);
+    inputArray = new Array<IPhotos>;
 
-                cursor.continue();
-            }
-            else {
-                return photoArray;
-            }
+    constructor(phArray:Array<IPhotos>){
 
+        this.inputArray=phArray
+    }
+
+    async insertdatas(objectstorename:string){
+
+        let db = request.result
+        this.inputArray.forEach((item:Object) => {
+
+            let transaction = db.transaction(objectstorename, "readwrite"); 
+            let objectStore = transaction.objectStore(objectstorename);
+            let addRequest = objectStore.add(item)
         }
+        )
     }
+
 }
 
 
-async function getAlbum() {
-    const request = indexedDB.open("albumDatabase", 5);
-    request.onsuccess = function () {
-        const db = request.result;
 
+//class to get albumdatas from indexedDB
 
+class GetalbumDatas implements IgetDatas{
 
-        const transaction = db.transaction(["albums"], "readwrite");
-        const store = transaction.objectStore("albums");
-        store.openCursor().onsuccess = (event: any) => {
-            const cursor = event.target.result;
-            if (cursor) {
-                albumArray.push(cursor.value);
+    objectstorename :string
 
-                cursor.continue();
+    constructor(object:string){
+
+        this.objectstorename=object
+    }
+
+    async getdatas(){
+
+        let promise:Promise<Array<IAlbums>> = new Promise((resolve)=>{
+
+            let db = request.result
+            let transaction = db.transaction(this.objectstorename, "readwrite");
+            let objectStore = transaction.objectStore(this.objectstorename);
+            let getRequest = objectStore.getAll()
+
+            getRequest.onsuccess=()=>{
+
+                let array:Array<IAlbums> =getRequest.result
+                resolve(array)
             }
-            else {
-                return albumArray;
             }
-
-        }
+            )
+            return promise
     }
+
 }
 
 
 
+//class to get photodatas from indexedDB
 
 
-async function callAlbums() {
-    x = await getAlbums
+class GetphotoDatas implements IgetDatas{
 
+    objectstorename :string
+    albumidvalue:number
 
-    const request = indexedDB.open("albumDatabase", 5);
-    request.onerror = function (event) {
-        console.error("An error occurred with IndexedDB");
-        console.error(event);
-    };
+    constructor(object:string,albumidvalue:number){
 
-
-    request.onupgradeneeded = function () {
-        const db = request.result;
-
-
-        const store = db.createObjectStore("albums", { keyPath: "id" })
-        store.createIndex("title", ["title"]);
-    };
-
-    request.onsuccess = function () {
-        const db = request.result;
-
-
-        const transaction = db.transaction(["albums"], "readwrite");
-
-
-        const store = transaction.objectStore("albums");
-
-        for (var i = 0; i < x.length; i++) {
-            var p = x[i];
-            store.put(p);
-        }
-
-
-    }
-}
-
-
-
-// getAlbum();
-// getPhoto();
-
-function wait() {
-    return new Promise((res: any) => {
-        setTimeout(() => {
-            res();
-        }, 500);
-    });
-
-
-}
-
-
-async function albumDisplay(albumArray1: any) {
-
-
-
-    f = document.querySelector('.row');
-    f.innerHTML = ""
-
-    for (var i = 0; i < albumArray1.length; i++) {
-        p = albumArray1[i]
-        f.innerHTML += `<div class ="card">
-                                <div class="cardcontents">
-                                <div class="cardtitle">
-                                <h3>${p.title}</h3>
-                                </div>
-                                <div class="cardid">
-                                <p>${p.id}</p>
-                                </div>
-                                <div class="cardbutton">
-                                <button type ="button" class ="button">click here</button>
-                                </div>
-                                </div>
-                        </div>`
-
-    }
-    var classArray = document.getElementsByClassName('card');
-
-    for (var i = 0; i < classArray.length; i++) {
-        p = classArray[i];
-        var cardid = "cardid" + albumArray1[i].id
-
-        p.setAttribute("id", cardid)
-    }
-    var buttonArray = document.getElementsByClassName('button');
-    for (var i = 0; i < classArray.length; i++) {
-        p = buttonArray[i];
-        var buttonid = albumArray1[i].id
-        p.setAttribute("id", buttonid)
+        this.objectstorename=object
+        this.albumidvalue=albumidvalue
     }
 
+    async getdatas(){
 
+        let promise:Promise<Array<IPhotos>> = new Promise((resolve)=>{
 
-    let btns = document.querySelectorAll('button');
-    photoArray = []
-    getPhoto();
-    await wait();
-    btns.forEach(function (i) {
-        i.addEventListener('click', function () {
-            albID = i.id
-            photoArrayused=[]
+            let db = request.result
+            let transaction = db.transaction(this.objectstorename, "readwrite");
+            let objectStore = transaction.objectStore(this.objectstorename);
+            const opencursor = objectStore.openCursor()
+            let arr = new Array<IPhotos>()
+
+            opencursor.onsuccess = () => {
+
+                const cursor = opencursor.result;
+                if(cursor){
+                    if (cursor.value.albumId==this.albumidvalue)
+                        {
+                            arr.push(cursor.value)
+                        }
+                    cursor.continue();
+           
+                }
+
+                else{
+                    resolve(arr)
+                    console.log("succesful");
             
-            for (var j=0;j<photoArray.length;j++){
-                if (photoArray[j].albumId==albID){
-                    photoArrayused.push(photoArray[j])
                 }
             }
+         
+            
+        })
+            
+        return promise
 
-            photoDisplay(albID, photoArrayused);
+    }
+
+}
+
+
+//class to search inside album indexedDB
+
+class AlbumSearch implements ISearch{
+
+    key:string;
+    searchArray = new Array<IAlbums>;
+
+    constructor(key:string,searchArray:any[]){
+
+        this.key=key;
+        this.searchArray=searchArray;
+    }
+
+    searchmethod(){
+
+    var searching = new RegExp(`${this.key}`, "gi")
+    var resultalbumname = this.searchArray.filter(function (e: any) {
+        return searching.test(e.title);
+
+    });
+
+    let albumObject = new DisplayAlbums(resultalbumname)
+    albumObject.displaydatas(); 
+
+    }
+
+}
+
+//class to search inside photo of current albumID indexedDB
+
+
+class PhotoSearch implements ISearch{
+
+    key:string;
+    searchArray = new Array<IPhotos>;
+
+    constructor(key:string,searchArray:any[]){
+
+        this.key=key;
+        this.searchArray=searchArray;
+    }
+
+    searchmethod(){
+    
+    var searching = new RegExp(`${this.key}`, "gi")
+    var resultphotoname = this.searchArray.filter(function (e: any) {
+        return searching.test(e.title);
+
+    });
+    
+    let photoObject = new DisplayPhotos(resultphotoname)
+    photoObject.displaydatas()
+
+    }
+
+}
+
+
+//class to display Photos 
+
+class DisplayPhotos implements IDisplaydatas {
+   
+    inputArray = new Array<IPhotos>;
+
+    constructor(phArray:any){
+
+        this.inputArray=phArray
+    }
+
+    async displaydatas(){
+
+            var s :string= "";
+            for (var i = 0; i < this.inputArray.length; i++) {
+                    s += `<div class ="photocard">
+        
+                                        <div class="photocontent" id="phototitle">
+                                        ${this.inputArray[i].title}
+                                        </div>
+                                        <div class="photocontent" id ="photoclick">Hover to show color</div>
+                                        <div class="photocontent" id="photourl">
+                                        <img src= ${this.inputArray[i].thumbnailUrl}>
+                                        </div>
+                                        </div>`
+                
+            }
+        
+            let displayqueryphotos= document.querySelector(".modalcont") as HTMLInputElement;
+            displayqueryphotos.innerHTML = "";
+            displayqueryphotos.innerHTML = s;
+            
+        
+            var modalElement = <HTMLInputElement>document.getElementById("modal")
+            var modal = modalElement.value
+            var span = <HTMLElement>document.getElementsByClassName("close")[0];
+        
+            modalElement.style.display = "block";
+            span.onclick = function () {
+
+                modalElement.style.display = "none";
+            }
+        
+            window.onclick = function (event: any) {
+
+                if (event.target == modal) {
+                    modalElement.style.display = "none";
+                }
+            }
+        }
+        
+    }
+
+//class to display Photos 
+
+
+class DisplayAlbums implements IDisplaydatas{
+
+    inputArray = new Array<IAlbums>;
+
+    constructor(phArray:any){
+
+        this.inputArray=phArray
+    }
+
+    async displaydatas(){
+
+        let displayquery= document.querySelector('.row') as HTMLInputElement;
+        displayquery.innerHTML  = ""
+        for (var i = 0; i < this.inputArray.length; i++) {
+            displayquery.innerHTML += `<div class ="card">
+                                
+                                <div class="cardcontent" id ="cardtitle">
+                                ${this.inputArray[i].title}
+                                </div>
+                                <div class="cardcontent" id ="cardid">
+                                <p>${this.inputArray[i].id}</p>
+                                </div>
+                                <div class="cardcontent" id ="cardbutton">
+                                <button type ="button" class ="button">click here</button>
+                                </div>
+                        </div>`
+        }
+
+        var classArray = document.getElementsByClassName('card')  ;
+
+        for (var i = 0; i < classArray.length; i++) {
+
+            var cardid = "cardid" + classArray[i].id
+            classArray[i].setAttribute("id", cardid)
+        }
+
+        var buttonArray = document.getElementsByClassName('button');
+
+        for (var i = 0; i < classArray.length; i++) {
+
+            var buttonid = this.inputArray[i].id
+            buttonArray[i].setAttribute("id", buttonid)
+        }
+
+        photoArray=[]
+        
+        let btns = document.querySelectorAll('.button');
+        btns.forEach(function (i) {
+        i.addEventListener('click', async function () {
+
+            var buttonid:number = +i.id
+            let getphoto = new GetphotoDatas("photoobjectstore",buttonid)
+            photoArray = await getphoto.getdatas()
+
+            let dispphoto = new DisplayPhotos(photoArray)
+            dispphoto.displaydatas()
+            
+
         });
     });
-}
-
-
-async function photoDisplay(albumID: any, photoArray1: any) {
-    var s = "";
-
-    for (var i = 0; i < photoArray1.length; i++) {
-        if (photoArray1[i].albumId == albumID) {
-
-            s += `<div class ="photocard">
-
-                                <div class="phototitle">
-                                <h3>${photoArray1[i].title}</h3>
-                                </div>
-                                <div class="photourl">
-                                <img src= ${photoArray1[i].thumbnailUrl}>
-                                </div>
-                                </div>`
-        }
-    }
-
-
-    // f+= `<div class ="modal" id="mymodal">
-    // <div class="modal-content">
-    //     <span class ="close">&times;</span>`+s+`</div></div>`
-    g = document.querySelector(".modalcont")
-    g.innerHTML = "";
-    g.innerHTML = s;
-    
-
-    var modalElement = <HTMLInputElement>document.getElementById("modal")
-    var modal = modalElement.value
-    var span = <HTMLElement>document.getElementsByClassName("close")[0];
-
-    modalElement.style.display = "block";
-
-    span.onclick = function () {
-        modalElement.style.display = "none";
-    }
-
-    window.onclick = function (event: any) {
-        if (event.target == modal) {
-            modalElement.style.display = "none";
-        }
+        
     }
 }
-
-async function search() {
-    var searchname1 = <HTMLInputElement>document.getElementById("searchInput");
-    var searchname = searchname1.value
-
-    searchBy(searchname, albumArray);
-
-}
-
-async function searchPhotos() {
-    var searchname1 = <HTMLInputElement>document.getElementById("searchPhotoInput");
-    var searchname = searchname1.value
-
-    if (searchname===""||searchname==null){
-        photoDisplay(albID,photoArrayused)
-    }else{
-
-    searchByPhotos(searchname, photoArrayused);
-    }
-
-}
-
-function searchBy(searchname: any, albumArray: any) {
-    var searching = new RegExp(`${searchname}`, "gi")
-
-    var resultalbumname = albumArray.filter(function (el: any) {
-        return searching.test(el.title);
-
-    });
-    albumDisplay(resultalbumname);
-}
-
-function searchByPhotos(searchname: any, photoArraydup1: any) {
-    var searching = new RegExp(`${searchname}`, "gi")
-
-    var resultphotoname = photoArraydup1.filter(function (el: any) {
-        return searching.test(el.title);
-
-    });
-
-    
-    photoDisplay(albID, resultphotoname);
-}
-
-
-async function runDisplay() {
-    getAlbum();
-    await wait();
-    albumDisplay(albumArray);
-
-}
-
 
 
 function debounce(func: Function, timeout = 500) {
+    
     let timer: number;
-    return function (this: any, ...args: any[]) {
+   
+    console.log();
+    
+    
+    return function (this: any, ...args: any[]) {        
+
         clearTimeout(timer);
         timer = setTimeout(() => {
             func.apply(this, args);
@@ -342,22 +478,61 @@ function debounce(func: Function, timeout = 500) {
     };
 }
 
-function deleteDatabase(){
-    var r1 = indexedDB.deleteDatabase("photoDatabase")
-    var r2 = indexedDB.deleteDatabase("albumDatabase")
+
+
+//search albums
+
+searchElement?.addEventListener('input',(event)=>{
+
+    var searchname = <HTMLInputElement>document.getElementById("searchInput");
+    let searchalbumObject = new AlbumSearch(searchname.value,albumArray)
+    searchalbumObject.searchmethod()
+})
+
+//search photos
+
+searchPhotoElement?.addEventListener('input',(event)=>{
+    
+    var searchname = <HTMLInputElement>document.getElementById("searchPhotoInput");
+    let searchphotoObject = new PhotoSearch(searchname.value,photoArray)
+    searchphotoObject.searchmethod() 
+    
+})
+
+
+const run=async ()=>{
+
+    let apialbum = new AlbumApiFetcher('https://jsonplaceholder.typicode.com/albums');
+    await apialbum.fetcher();
+    
+    let apiphoto = new PhotosApiFetcher('https://jsonplaceholder.typicode.com/photos');
+    await apiphoto.fetcher()
+    
+    let insertalbum = new InputalbumDatas(apialbum.array)
+    await insertalbum.insertdatas("albumobjectstore");
+
+    
+    let insertphoto = new InputphotoDatas(apiphoto.array)
+    await insertphoto.insertdatas("photoobjectstore");
+
+    let getalbum = new GetalbumDatas("albumobjectstore")
+    albumArray = await getalbum.getdatas()
+
+    let dispdata = new DisplayAlbums(albumArray)
+    dispdata.displaydatas();
 }
+    
+
+//run the program
+
+run();
 
 
-const process = debounce(() => search())
 
 
-const processPhotos = debounce(() => searchPhotos())
 
-//photoDisplay();
 
-//callPhotos();
-//callAlbums()
-runDisplay();
-// document.getElementById('row').addEventListener("click",function(e)){
-//     if (e.target && e.target.matches(""))
-// }
+
+
+
+

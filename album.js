@@ -330,7 +330,6 @@ var DisplayAlbums = /** @class */ (function () {
 function debounce(func, timeout) {
     if (timeout === void 0) { timeout = 500; }
     var timer;
-    console.log();
     return function () {
         var _this = this;
         var args = [];
@@ -344,17 +343,20 @@ function debounce(func, timeout) {
     };
 }
 //search albums
-searchElement === null || searchElement === void 0 ? void 0 : searchElement.addEventListener('input', function (event) {
+var DebounceAlbums = debounce(function () { return searchAlb(); });
+var DebouncePhotos = debounce(function () { return searchPhot(); });
+function searchAlb() {
     var searchname = document.getElementById("searchInput");
     var searchalbumObject = new AlbumSearch(searchname.value, albumArray);
     searchalbumObject.searchmethod();
-});
-//search photos
-searchPhotoElement === null || searchPhotoElement === void 0 ? void 0 : searchPhotoElement.addEventListener('input', function (event) {
+}
+function searchPhot() {
     var searchname = document.getElementById("searchPhotoInput");
     var searchphotoObject = new PhotoSearch(searchname.value, photoArray);
     searchphotoObject.searchmethod();
-});
+}
+searchElement === null || searchElement === void 0 ? void 0 : searchElement.addEventListener('input', DebounceAlbums);
+searchPhotoElement === null || searchPhotoElement === void 0 ? void 0 : searchPhotoElement.addEventListener('input', DebouncePhotos);
 var run = function () { return __awaiter(_this, void 0, void 0, function () {
     var apialbum, apiphoto, insertalbum, insertphoto, getalbum, dispdata;
     return __generator(this, function (_a) {

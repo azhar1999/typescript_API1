@@ -464,8 +464,7 @@ class DisplayAlbums implements IDisplaydatas{
 function debounce(func: Function, timeout = 500) {
     
     let timer: number;
-   
-    console.log();
+
     
     
     return function (this: any, ...args: any[]) {        
@@ -482,22 +481,30 @@ function debounce(func: Function, timeout = 500) {
 
 //search albums
 
-searchElement?.addEventListener('input',(event)=>{
+const DebounceAlbums = debounce(()=>searchAlb())
 
+const DebouncePhotos = debounce(()=>searchPhot())
+
+function searchAlb(){
     var searchname = <HTMLInputElement>document.getElementById("searchInput");
     let searchalbumObject = new AlbumSearch(searchname.value,albumArray)
     searchalbumObject.searchmethod()
-})
 
-//search photos
+}
 
-searchPhotoElement?.addEventListener('input',(event)=>{
-    
+function searchPhot(){
     var searchname = <HTMLInputElement>document.getElementById("searchPhotoInput");
     let searchphotoObject = new PhotoSearch(searchname.value,photoArray)
     searchphotoObject.searchmethod() 
     
-})
+
+}
+
+searchElement?.addEventListener('input',DebounceAlbums)
+
+
+
+searchPhotoElement?.addEventListener('input',DebouncePhotos)
 
 
 const run=async ()=>{

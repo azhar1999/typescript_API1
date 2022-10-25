@@ -478,26 +478,33 @@ function debounce(func: Function, timeout = 500) {
     };
 }
 
+function searchAlbums(){
+    {
+        var searchname = <HTMLInputElement>document.getElementById("searchInput");
+        let searchalbumObject = new AlbumSearch(searchname.value,albumArray)
+        searchalbumObject.searchmethod()
+    }
+}
 
+function searchPhotos(){
+    {
+        var searchname = <HTMLInputElement>document.getElementById("searchPhotoInput");
+        let searchphotoObject = new PhotoSearch(searchname.value,photoArray)
+        searchphotoObject.searchmethod() 
+    }
+}
+
+const debounceSearchAlbum = debounce(()=> searchAlbums())
+
+const debounceSearchPhotos = debounce(()=> searchPhotos())
 
 //search albums
 
-searchElement?.addEventListener('input',(event)=>{
-
-    var searchname = <HTMLInputElement>document.getElementById("searchInput");
-    let searchalbumObject = new AlbumSearch(searchname.value,albumArray)
-    searchalbumObject.searchmethod()
-})
+searchElement?.addEventListener('input',debounceSearchAlbum)
 
 //search photos
 
-searchPhotoElement?.addEventListener('input',(event)=>{
-    
-    var searchname = <HTMLInputElement>document.getElementById("searchPhotoInput");
-    let searchphotoObject = new PhotoSearch(searchname.value,photoArray)
-    searchphotoObject.searchmethod() 
-    
-})
+searchPhotoElement?.addEventListener('input',debounceSearchPhotos)
 
 
 const run=async ()=>{
